@@ -21,7 +21,7 @@ function sendLogEmbed(executor, user, eventTitle, guild, reason){
   .setImage(user.avatarURL({format: "png"}))
   .setDescription(`**Target** \n ${user.tag} [${user.id}] \n \n **User**\n ${executor.tag} [${executor.id}] \n\n **Reason**\n ${reason}`)
   .setTimestamp()
-  .setFooter("aSpicyModerator")
+  .setFooter({text: "aSpicyModerator"})
   .setThumbnail(executor.avatarURL({format: "png"}))
 
   let logChannel = guild.channels.cache.get(config.logChannel)
