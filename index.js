@@ -9,7 +9,10 @@ const client = new Discord.Client({
       Discord.Intents.FLAGS.GUILD_BANS,
       Discord.Intents.FLAGS.AUTO_MODERATION_EXECUTION,
     ]
-  });
+});
+
+let oldFetchedLogs = {}
+
 
 function sendLogEmbed(executor, user, eventTitle, guild, reason){
   
@@ -53,10 +56,13 @@ client.on("guildMemberRemove", async (member) =>{
 })
 
 client.on("guildMemberUpdate", async (oldMember, newMember) =>{
-  const fetchedLogs = await oldMember.guild.fetchAuditLogs({
+  if(newMember.user.bot){return}
+  const fetchedLogs = await newMember.guild.fetchAuditLogs({
 		limit: 1,
 		type: "MEMBER_UPDATE",
 	})
+  if(oldFetchedLogs === {}){oldFetchedLogs = fetchedLogs}
+  if(JSON.stringify(oldFetchedLogs) === JSON.stringify(fetchedLogs)){return}
   if(fetchedLogs.entries.first().changes[0].key == "communication_disabled_until"){
     let reason = "No reason"
     let firstEntry = fetchedLogs.entries.first()
@@ -64,15 +70,12 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
 
     if((fetchedLogs.entries.first().changes[0].old) && !(fetchedLogs.entries.first().changes[0].new)){
       sendLogEmbed(firstEntry.executor, firstEntry.target, "Member unmute", newMember.guild, reason)
-      console.log("Unmuted")
     }
     else if((fetchedLogs.entries.first().changes[0].new) && !(fetchedLogs.entries.first().changes[0].old)){
       sendLogEmbed(firstEntry.executor, firstEntry.target, "Member mute", newMember.guild, reason)
-      console.log("Muted")
     }
+    oldFetchedLogs = fetchedLogs
   }
-  console.log(fetchedLogs.entries.first().changes[0].key == "communication_disabled_until")
-  console.log(fetchedLogs.entries.first().changes)
 })
 
   
