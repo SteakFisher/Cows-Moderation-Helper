@@ -1,0 +1,15 @@
+{
+  "name": "test-bot",
+  "version": "1.0.0",
+  "description": "Test bot for running codes before adding to main",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "SteakFisher",
+  "license": "ISC",
+  "dependencies": {
+    "discord-html-transcripts": "^2.5.8",
+    "discord.js": "^13.8.1"
+  }
+}
