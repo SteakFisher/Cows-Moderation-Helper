@@ -7,7 +7,8 @@ const client = new Discord.Client({
       Discord.Intents.FLAGS.GUILD_MESSAGES, 
       Discord.Intents.FLAGS.GUILD_MEMBERS, 
       Discord.Intents.FLAGS.GUILD_BANS,
-    ]
+    ],
+    partials: ['GUILD_MEMBER']
 });
 
 let oldFetchedLogs = {}
