@@ -1,5 +1,5 @@
 {
-  "name": "test-bot",
+  "name": "cows-moderation-helper",
   "version": "1.0.0",
   "description": "Test bot for running codes before adding to main",
   "main": "index.js",
