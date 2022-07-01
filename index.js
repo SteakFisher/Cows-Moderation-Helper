@@ -7,8 +7,24 @@ const client = new Discord.Client({
       Discord.Intents.FLAGS.GUILD_MESSAGES, 
       Discord.Intents.FLAGS.GUILD_MEMBERS, 
       Discord.Intents.FLAGS.GUILD_BANS,
+      Discord.Intents.FLAGS.AUTO_MODERATION_EXECUTION,
     ]
   });
+
+function sendLogEmbed(executor, user, eventTitle, guild, reason){
+  
+  let embed = new Discord.MessageEmbed()
+  .setTitle(eventTitle)
+  .setColor("#00ffef")
+  .setImage(user.avatarURL({format: "png"}))
+  .setDescription(`**Target** \n ${user.tag} [${user.id}] \n \n **User**\n ${executor.tag} [${executor.id}] \n\n **Reason**\n ${reason}`)
+  .setTimestamp()
+  .setFooter("aSpicyModerator")
+  .setThumbnail(executor.avatarURL({format: "png"}))
+
+  let logChannel = guild.channels.cache.get(config.logChannel)
+  logChannel.send(embed)
+}
 
 async function logEvent(eventName, eventTitle, guild, user){
   let reason = "no reason"
@@ -20,21 +36,8 @@ async function logEvent(eventName, eventTitle, guild, user){
   
   const deletionLog = fetchedLogs.entries.first();
   if (!deletionLog) return console.log("Error: No deletion log found");
-
-
   if(deletionLog.reason){reason = deletionLog.reason}
-  
-  let embed = new Discord.MessageEmbed()
-  .setTitle(eventTitle)
-  .setColor("#00ffef")
-  .setImage(user.avatarURL({format: "png"}))
-  .setDescription(`**Target** \n ${user.tag} [${user.id}] \n \n **User**\n ${deletionLog.executor.tag} [${deletionLog.executor.id}] \n\n **Reason**\n ${reason}`)
-  .setTimestamp()
-  .setFooter("aSpicyModerator")
-  .setThumbnail(deletionLog.executor.avatarURL({format: "png"}))
-
-  let logChannel = guild.channels.cache.get(config.logChannel)
-  logChannel.send(embed)
+  sendLogEmbed(deletionLog.executor, user, eventTitle, guild, reason)
 }
 
 client.on("ready", () => {
@@ -47,6 +50,29 @@ client.on("guildBanAdd", async (guild, user) =>{
 
 client.on("guildMemberRemove", async (member) =>{
   logEvent('MEMBER_KICK', "Member Kick", member.guild, client.users.cache.find(user => user.id === member.id))
+})
+
+client.on("guildMemberUpdate", async (oldMember, newMember) =>{
+  const fetchedLogs = await oldMember.guild.fetchAuditLogs({
+		limit: 1,
+		type: "MEMBER_UPDATE",
+	})
+  if(fetchedLogs.entries.first().changes[0].key == "communication_disabled_until"){
+    let reason = "No reason"
+    let firstEntry = fetchedLogs.entries.first()
+    if(firstEntry.reason){reason = firstEntry.reason}
+
+    if((fetchedLogs.entries.first().changes[0].old) && !(fetchedLogs.entries.first().changes[0].new)){
+      sendLogEmbed(firstEntry.executor, firstEntry.target, "Member unmute", newMember.guild, reason)
+      console.log("Unmuted")
+    }
+    else if((fetchedLogs.entries.first().changes[0].new) && !(fetchedLogs.entries.first().changes[0].old)){
+      sendLogEmbed(firstEntry.executor, firstEntry.target, "Member mute", newMember.guild, reason)
+      console.log("Muted")
+    }
+  }
+  console.log(fetchedLogs.entries.first().changes[0].key == "communication_disabled_until")
+  console.log(fetchedLogs.entries.first().changes)
 })
 
   
