@@ -32,6 +32,9 @@ function sendLogEmbed(executor, user, eventTitle, guild, reason){
     console.log(executor.tag)
     console.log(err)
   }
+  finally{
+    logChannel.send(embed)
+  }
 }
 
 async function logEvent(eventName, eventTitle, guild, user){
