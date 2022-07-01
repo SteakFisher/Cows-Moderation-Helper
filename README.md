@@ -1,3 +1,3 @@
 # Cowbot
 
-Steak's bald
+Yes moderation
