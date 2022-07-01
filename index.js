@@ -25,7 +25,13 @@ function sendLogEmbed(executor, user, eventTitle, guild, reason){
   .setThumbnail(executor.avatarURL({format: "png"}))
 
   let logChannel = guild.channels.cache.get(config.logChannel)
-  logChannel.send(embed)
+  try{
+    logChannel.send(embed)
+  }
+  catch(err){
+    console.log(executor.tag)
+    console.log(err)
+  }
 }
 
 async function logEvent(eventName, eventTitle, guild, user){
