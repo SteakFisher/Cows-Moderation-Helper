@@ -36,11 +36,14 @@ async function logEvent(eventName, eventTitle, guild, user){
 		limit: 1,
 		type: eventName,
 	})
-  
   const deletionLog = fetchedLogs.entries.first();
   if (!deletionLog) return console.log("Error: No deletion log found");
   if(deletionLog.reason){reason = deletionLog.reason}
-  sendLogEmbed(deletionLog.executor, user, eventTitle, guild, reason)
+  console.log(fetchedLogs.entries.first().executor)
+  if(fetchedLogs.entries.first().executor){
+    console.log("Success")
+    sendLogEmbed(deletionLog.executor, user, eventTitle, guild, reason)
+  }
 }
 
 client.on("ready", () => {
@@ -51,9 +54,6 @@ client.on("guildBanAdd", async (guild, user) =>{
   logEvent('MEMBER_BAN_ADD', "Member Ban", guild, user)
 })
 
-client.on("guildMemberRemove", async (member) =>{
-  logEvent('MEMBER_KICK', "Member Kick", member.guild, client.users.cache.find(user => user.id === member.id))
-})
 
 client.on("guildMemberUpdate", async (oldMember, newMember) =>{
   if(newMember.user.bot){return}
