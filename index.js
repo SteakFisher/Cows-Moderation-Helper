@@ -53,7 +53,36 @@ client.on("ready", () => {
 })
 
 client.on("guildBanAdd", async (guild, user) =>{
-  logEvent('MEMBER_BAN_ADD', "Member Ban", guild, user)
+  let reason = "no reason"
+  setTimeout(async function(){ 
+    const auditLogs = await guild.fetchAuditLogs({
+      limit: 1,
+      type: 'MEMBER_BAN_ADD',
+    });
+    let auditLog = auditLogs.entries.first()
+    if(auditLog.reason !== null){
+      reason = auditLog.reason
+    }
+    let whoBanned = auditLog.executor
+    if(whoBanned.id === "868564374388899940"){
+      banBy = reason.split("-")[1]
+      reason = reason.split("-")[0]
+    }
+    else{
+      banBy = whoBanned.tag + " [" + whoBanned.id + "]"
+    }
+    let embed = new Discord.MessageEmbed()
+    .setTitle("Member Ban")
+    .setColor("#00ffef")
+    .setImage(user.avatarURL({format: "png"}))
+    .setDescription(`**Target** \n ${user.tag} [${user.id}] \n \n **User**\n ${banBy}] \n\n **Reason**\n ${reason}`)
+    .setTimestamp()
+    .setFooter({text: "aSpicyModerator"})
+    .setThumbnail(executor.avatarURL({format: "png"}))
+
+    let logChannel = guild.channels.cache.get(config.logChannel)
+    logChannel.send({ embeds: [embed] })
+ }, 1000);
 })
 
 
