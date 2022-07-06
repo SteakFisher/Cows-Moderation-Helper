@@ -79,4 +79,4 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
 })
 
   
-client.login(config.token)
+client.login(process.env.DJS_TOKEN)
