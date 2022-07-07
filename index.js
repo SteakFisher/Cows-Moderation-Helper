@@ -101,9 +101,11 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
 
     if((fetchedLogs.entries.first().changes[0].old) && !(fetchedLogs.entries.first().changes[0].new)){
       sendLogEmbed(firstEntry.executor, firstEntry.target, "Member unmute", newMember.guild, reason)
+      newMember.send("You have been unmuted")
     }
     else if((fetchedLogs.entries.first().changes[0].new) && !(fetchedLogs.entries.first().changes[0].old)){
       sendLogEmbed(firstEntry.executor, firstEntry.target, "Member mute", newMember.guild, reason)
+      newMember.send(`You have been muted, reason - ${reason}`)
     }
     oldFetchedLogs = fetchedLogs
   }
