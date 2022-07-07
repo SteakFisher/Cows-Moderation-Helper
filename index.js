@@ -58,7 +58,10 @@ client.on("guildBanAdd", async (guild, user) =>{
     const auditLogs = await guild.fetchAuditLogs({
       limit: 1,
       type: 'MEMBER_BAN_ADD',
-    });
+    })
+    .then(audit => console.log(audit.entries.first()))
+    .catch(console.error);
+    
     let auditLog = auditLogs.entries.first()
     if(auditLog.reason !== null){
       reason = auditLog.reason
