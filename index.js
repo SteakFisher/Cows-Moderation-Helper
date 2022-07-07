@@ -55,12 +55,7 @@ client.on("ready", () => {
 client.on("guildBanAdd", async (guild, user) =>{
   let reason = "no reason"
   setTimeout(async function(){ 
-    const auditLogs = await guild.fetchAuditLogs({
-      limit: 1,
-      type: 'MEMBER_BAN_ADD',
-    })
-    .then(audit => console.log(audit.entries.first()))
-    .catch(console.error);
+    console.log(guild.name)
     
     let auditLog = auditLogs.entries.first()
     if(auditLog.reason !== null){
