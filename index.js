@@ -89,4 +89,4 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
   }
 })
 
-client.login("OTYxNjMxMDc1MjI0OTQ0NzQx.G8_L_I.HALyQpoC0Qql4LJTCVk0bjAMLNEhgIBgnTXOiA")
+client.login(process.env.DJS_TOKEN)
