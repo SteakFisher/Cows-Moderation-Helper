@@ -1,4 +1,3 @@
-//steaks dumb
 
 const Discord = require("discord.js");
 const config = require("./config.json");
@@ -13,40 +12,50 @@ const client = new Discord.Client({
     partials: ['GUILD_MEMBER']
 });
 
-let oldFetchedLogs = {}
+function roundToNearestTime(time){
+  return Math.round(time / 60)
+}
 
+function timeoutTime(newMember){
+  let timeOut = ""
+  let endTime = Math.floor(new Date(newMember.communicationDisabledUntil).getTime() / 1000)
+  let currentTime = Math.floor((new Date()).getTime() / 1000)
+  let diffTime = roundToNearestTime(endTime - currentTime)
+  if(diffTime > 0){
+    timeOut = `${diffTime} minute(s)`
+  }
+  if(diffTime >= 60){
+    timeOut = `${diffTime/60} hour(s)`
+  }
+  if(diffTime >= 1440){
+    timeOut = `${diffTime/1440} days(s)`
+  }
+  return timeOut
+}
 
-function sendLogEmbed(executor, user, eventTitle, guild, reason){
+async function sendLogEmbed(executor, user, eventTitle, guild, reason, time){
   
   let embed = new Discord.MessageEmbed()
   .setTitle(eventTitle)
   .setColor("#00ffef")
   .setImage(user.avatarURL({format: "png"}))
-  .setDescription(`**Target** \n ${user.tag} [${user.id}] \n \n **User**\n ${executor.tag} [${executor.id}] \n\n **Reason**\n ${reason}`)
   .setTimestamp()
   .setFooter({text: "aSpicyModerator"})
+  if(time){
+    embed.setDescription(`**Target** \n ${user.tag} [${user.id}] \n \n **User**\n ${executor.tag} [${executor.id}] \n\n **Reason**\n ${reason.trim()} \n\n **Time**\n ${time}`)
+  }else{
+    embed.setDescription(`**Target** \n ${user.tag} [${user.id}] \n \n **User**\n ${executor.tag} [${executor.id}] \n\n **Reason**\n ${reason.trim()}`)
+  }
   if(executor.avatarURL){
     embed.setThumbnail(executor.avatarURL({format: "png"}))
   }
+  let logChannel = await guild.channels.cache.get(config.logChannel)
 
-  let logChannel = guild.channels.cache.get(config.logChannel)
-  logChannel.send({ embeds: [embed] })
-}
-
-async function logEvent(eventName, eventTitle, guild, user){
-  let reason = "no reason"
-
-  const fetchedLogs = await guild.fetchAuditLogs({
-		limit: 1,
-		type: eventName,
-	})
-  const deletionLog = fetchedLogs.entries.first();
-  if (!deletionLog) return console.log("Error: No deletion log found");
-  if(deletionLog.reason){reason = deletionLog.reason}
-  if(fetchedLogs.entries.first().executor){
-    sendLogEmbed(deletionLog.executor, user, eventTitle, guild, reason)
+  if(embed && logChannel){
+    logChannel.send({ embeds: [embed] })
   }
 }
+
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`)
@@ -54,39 +63,72 @@ client.on("ready", () => {
 
 client.on("message", async message => {
   if(message.channel.type === "dm") return
-  if(message.channel.id === "969948890616975360"){console.log(message)} 
 })
 
 client.on("guildMemberUpdate", async (oldMember, newMember) =>{
   if(newMember.user.bot){return}
-  const fetchedLogs = await newMember.guild.fetchAuditLogs({
-		limit: 1,
-		type: "MEMBER_UPDATE",
-	})
-  if(oldFetchedLogs === {}){
-    oldFetchedLogs = fetchedLogs
-    return
-  }
-  if(JSON.stringify(oldFetchedLogs) === JSON.stringify(fetchedLogs)){return}
-  if(fetchedLogs.entries.first().changes[0].key == "communication_disabled_until"){
+
+  delete newMember.joinedTimestamp
+  delete oldMember.joinedTimestamp
+  delete newMember.premiumSinceTimestamp
+  delete oldMember.premiumSinceTimestamp
+
+  if(newMember.communicationDisabledUntil){
+    let timeOut = timeoutTime(newMember)
+
+    const fetchedLogs = await newMember.guild.fetchAuditLogs({
+      limit: 1,
+      type: "MEMBER_UPDATE",
+    })
+
     let reason = "No reason"
     let firstEntry = fetchedLogs.entries.first()
     if(firstEntry.reason){reason = firstEntry.reason}
 
-    if((fetchedLogs.entries.first().changes[0].old) && !(fetchedLogs.entries.first().changes[0].new) && (fetchedLogs.entries.executor)){
-      sendLogEmbed(firstEntry.executor, firstEntry.target, "Member unmute", newMember.guild, reason)
-      newMember.send("You have been unmuted")
-    }
-    else if((fetchedLogs.entries.first().changes[0].new) && !(fetchedLogs.entries.first().changes[0].old) && (fetchedLogs.entries.executor)){
-      sendLogEmbed(firstEntry.executor, firstEntry.target, "Member mute", newMember.guild, reason)
+    if(firstEntry.executor.id){
+      sendLogEmbed(firstEntry.executor, firstEntry.target, "Member mute", newMember.guild, reason, timeOut)
       newMember.send(`You have been muted, reason - ${reason}`)
     }
-    else if((firstEntry.target) && (JSON.stringify(oldFetchedLogs) !== JSON.stringify(fetchedLogs))){
-      sendLogEmbed({tag: "Automod", id: "Discord"}, firstEntry.target, "Member mute", newMember.guild, "Check <#969948890616975360> for more info")
-      
+    else if(!firstEntry.executor.id){
+      sendLogEmbed({tag : "Discord AutoMod", id : "Probably"}, firstEntry.target, "Member mute", newMember.guild, reason, timeOut)
+      newMember.send(`You have been muted, reason - ${reason}`)
     }
-    oldFetchedLogs = fetchedLogs
+  }
+
+  if(oldMember.communicationDisabledUntil){
+    const fetchedLogs = await oldMember.guild.fetchAuditLogs({
+      limit: 1,
+      type: "MEMBER_UPDATE",
+    })
+
+    let reason = "No reason"
+    let firstEntry = fetchedLogs.entries.first()
+
+    sendLogEmbed(firstEntry.executor, firstEntry.target, "Member unmute", oldMember.guild, reason)
+    oldMember.send(`You have been unmuted, reason - ${reason}`)
+  }
+
+  if(JSON.stringify(oldMember) !== JSON.stringify(newMember)){return}
+
+
+  const fetchedLogs = await newMember.guild.fetchAuditLogs({
+    limit: 1,
+    type: "MEMBER_UPDATE",
+  })
+
+
+  if((fetchedLogs.entries.first().changes[0].key === "communication_disabled_until") &&
+      ((fetchedLogs.entries.first().changes[0].old) &&
+          !(fetchedLogs.entries.first().changes[0].new) &&
+          (fetchedLogs.entries.executor))){
+    let reason = "No reason"
+    let firstEntry = fetchedLogs.entries.first()
+    if(firstEntry.reason){reason = firstEntry.reason}
+
+    sendLogEmbed(firstEntry.executor, firstEntry.target, "Member unmute", newMember.guild, reason)
+    newMember.send("You have been unmuted")
   }
 })
 
-client.login(process.env.DJS_TOKEN)
+//client.login(process.env.DJS_TOKEN)
+client.login("ODU5NzA4NzI1ODU3NjE1ODcz.GbfjSI.5iBEV98IXjV1Y2sNFZsCeN6wqrutZ-qnjynWWs")
