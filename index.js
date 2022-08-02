@@ -61,10 +61,6 @@ client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
-client.on("message", async message => {
-  if(message.channel.type === "dm") return
-})
-
 client.on("guildMemberUpdate", async (oldMember, newMember) =>{
   if(newMember.user.bot){return}
 
@@ -129,5 +125,29 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
     newMember.send("You have been unmuted")
   }
 })
+
+client.on("guildBanAdd", async function(guild, user){
+  const fetchedLogs = await guild.guild.fetchAuditLogs({
+    limit: 1,
+    type: "MEMBER_BAN_ADD",
+  })
+
+  let reason = "No reason"
+  let firstEntry = fetchedLogs.entries.first()
+  if(firstEntry.reason){reason = firstEntry.reason}
+  sendLogEmbed(firstEntry.executor, guild.user, "Member ban", guild.guild, reason)
+});
+
+client.on("guildBanRemove", async function(guild, user){
+  const fetchedLogs = await guild.guild.fetchAuditLogs({
+    limit: 1,
+    type: "MEMBER_BAN_REMOVE",
+  })
+
+  let reason = "No reason"
+  let firstEntry = fetchedLogs.entries.first()
+  if(firstEntry.reason){reason = firstEntry.reason}
+  sendLogEmbed(firstEntry.executor, guild.user, "Member Unban", guild.guild, reason)
+});
 
 client.login(process.env.DJS_TOKEN)
