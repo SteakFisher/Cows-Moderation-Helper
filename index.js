@@ -130,5 +130,4 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
   }
 })
 
-//client.login(process.env.DJS_TOKEN)
-client.login("ODU5NzA4NzI1ODU3NjE1ODcz.GbfjSI.5iBEV98IXjV1Y2sNFZsCeN6wqrutZ-qnjynWWs")
+client.login(process.env.DJS_TOKEN)
