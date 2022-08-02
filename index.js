@@ -1,4 +1,4 @@
-
+const fs = require('fs');
 const Discord = require("discord.js");
 const config = require("./config.json");
 
@@ -11,6 +11,8 @@ const client = new Discord.Client({
     ],
     partials: ['GUILD_MEMBER']
 });
+
+let oldFetchedLogs = ""
 
 function roundToNearestTime(time){
   return Math.round(time / 60)
@@ -58,6 +60,14 @@ async function sendLogEmbed(executor, user, eventTitle, guild, reason, time){
 
 
 client.on("ready", () => {
+  fs.readFile('storage.json', 'utf-8', (err, data) => {
+    if (err) {
+      throw err;
+    }
+
+    oldFetchedLogs = data.toString()
+  });
+
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
@@ -76,6 +86,8 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
       limit: 1,
       type: "MEMBER_UPDATE",
     })
+
+    if(oldFetchedLogs === JSON.stringify(fetchedLogs)){return}
 
     let reason = "No reason"
     let firstEntry = fetchedLogs.entries.first()
@@ -124,6 +136,14 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
     sendLogEmbed(firstEntry.executor, firstEntry.target, "Member unmute", newMember.guild, reason)
     newMember.send("You have been unmuted")
   }
+
+  oldFetchedLogs = JSON.stringify(fetchedLogs)
+
+  fs.writeFile('storage.json', oldFetchedLogs, (err) => {
+    if (err) {
+      throw err;
+    }
+  })
 })
 
 client.on("guildBanAdd", async function(guild, user){
