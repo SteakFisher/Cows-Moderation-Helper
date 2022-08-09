@@ -73,6 +73,7 @@ client.on("ready", () => {
 
 client.on("guildMemberUpdate", async (oldMember, newMember) =>{
   if(newMember.user.bot){return}
+  if(newMember.nickname !== oldMember.nickname){return}
 
   delete newMember.joinedTimestamp
   delete oldMember.joinedTimestamp
