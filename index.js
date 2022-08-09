@@ -73,7 +73,6 @@ client.on("ready", () => {
 
 client.on("guildMemberUpdate", async (oldMember, newMember) =>{
   if(newMember.user.bot){return}
-  if(newMember.nickname !== oldMember.nickname){return}
 
   delete newMember.joinedTimestamp
   delete oldMember.joinedTimestamp
@@ -87,7 +86,7 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
       limit: 1,
       type: "MEMBER_UPDATE",
     })
-
+    if(fetchedLogs.entries.first().changes[0].key !== "communicationDisabledUntil") return
     if(oldFetchedLogs === JSON.stringify(fetchedLogs)){return}
 
     let reason = "No reason"
@@ -98,7 +97,7 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
       sendLogEmbed(firstEntry.executor, firstEntry.target, "Member mute", newMember.guild, reason, timeOut)
       newMember.send(`You have been muted, reason - ${reason}`)
     }
-    else if(!firstEntry.executor.id){
+    else{
       sendLogEmbed({tag : "Discord AutoMod", id : "Probably"}, firstEntry.target, "Member mute", newMember.guild, reason, timeOut)
       newMember.send(`You have been muted, reason - ${reason}`)
     }
@@ -124,7 +123,6 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
     limit: 1,
     type: "MEMBER_UPDATE",
   })
-
 
   if((fetchedLogs.entries.first().changes[0].key === "communication_disabled_until") &&
       ((fetchedLogs.entries.first().changes[0].old) &&
