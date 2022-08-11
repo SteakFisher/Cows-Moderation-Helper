@@ -86,7 +86,8 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
       limit: 1,
       type: "MEMBER_UPDATE",
     })
-    if(fetchedLogs.entries.first().changes[0].key !== "communicationDisabledUntil") return
+    console.log(fetchedLogs.entries.first().changes[0])
+    if(fetchedLogs.entries.first().changes[0].key !== "communication_disabled_until") return  
     if(oldFetchedLogs === JSON.stringify(fetchedLogs)){return}
 
     let reason = "No reason"
