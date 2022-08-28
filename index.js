@@ -1,15 +1,16 @@
 const fs = require('fs');
 const Discord = require("discord.js");
 const config = require("./config.json");
+require('dotenv').config();
 
 const client = new Discord.Client({
-    intents: [
-      Discord.Intents.FLAGS.GUILDS, 
-      Discord.Intents.FLAGS.GUILD_MESSAGES, 
-      Discord.Intents.FLAGS.GUILD_MEMBERS, 
-      Discord.Intents.FLAGS.GUILD_BANS,
-    ],
-    partials: ['GUILD_MEMBER']
+  intents: [
+    Discord.Intents.FLAGS.GUILDS,
+    Discord.Intents.FLAGS.GUILD_MESSAGES,
+    Discord.Intents.FLAGS.GUILD_MEMBERS,
+    Discord.Intents.FLAGS.GUILD_BANS,
+  ],
+  partials: ['GUILD_MEMBER']
 });
 
 let oldFetchedLogs = ""
@@ -36,13 +37,13 @@ function timeoutTime(newMember){
 }
 
 async function sendLogEmbed(executor, user, eventTitle, guild, reason, time){
-  
+
   let embed = new Discord.MessageEmbed()
-  .setTitle(eventTitle)
-  .setColor("#00ffef")
-  .setImage(user.avatarURL({format: "png"}))
-  .setTimestamp()
-  .setFooter({text: "aSpicyModerator"})
+      .setTitle(eventTitle)
+      .setColor("#00ffef")
+      .setImage(user.avatarURL({format: "png"}))
+      .setTimestamp()
+      .setFooter({text: "aSpicyModerator"})
   if(time){
     embed.setDescription(`**Target** \n ${user.tag} [${user.id}] \n \n **User**\n ${executor.tag} [${executor.id}] \n\n **Reason**\n ${reason.trim()} \n\n **Time**\n ${time}`)
   }else{
@@ -74,6 +75,12 @@ client.on("ready", () => {
 client.on("guildMemberUpdate", async (oldMember, newMember) =>{
   if(newMember.user.bot){return}
 
+  if(oldMember.roles.cache.has(config.calvesRole)) return
+  else if(newMember.roles.cache.has(config.calvesRole)){
+    let channel = newMember.guild.channels.cache.get(config.generalChannel)
+    channel.send(`Hey <@${newMember.user.id}> just verified and can now talk! everyone say hi!!!`)
+  }
+
   delete newMember.joinedTimestamp
   delete oldMember.joinedTimestamp
   delete newMember.premiumSinceTimestamp
@@ -87,7 +94,7 @@ client.on("guildMemberUpdate", async (oldMember, newMember) =>{
       type: "MEMBER_UPDATE",
     })
     console.log(fetchedLogs.entries.first().changes[0])
-    if(fetchedLogs.entries.first().changes[0].key !== "communication_disabled_until") return  
+    if(fetchedLogs.entries.first().changes[0].key !== "communication_disabled_until") return
     if(oldFetchedLogs === JSON.stringify(fetchedLogs)){return}
 
     let reason = "No reason"
