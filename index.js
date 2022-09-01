@@ -75,11 +75,6 @@ client.on("ready", () => {
 client.on("guildMemberUpdate", async (oldMember, newMember) =>{
   if(newMember.user.bot){return}
 
-  if(oldMember.roles.cache.has(config.calvesRole)) return
-  else if(newMember.roles.cache.has(config.calvesRole)){
-    let channel = newMember.guild.channels.cache.get(config.generalChannel)
-    channel.send(`Hey <@${newMember.user.id}> just verified and can now talk! everyone say hi!!!`)
-  }
 
   delete newMember.joinedTimestamp
   delete oldMember.joinedTimestamp
